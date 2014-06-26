@@ -1,0 +1,30 @@
+{
+  "name": "chisme2",
+  "version": "0.0.0",
+  "description": "socket.io client for real time chat via cli",
+  "main": "sockServer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GMTurbo/chisme2.git"
+  },
+  "keywords": [
+    "socket.io",
+    "real-time",
+    "chat",
+    "cli"
+  ],
+  "author": "gmturbo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/GMTurbo/chisme2/issues"
+  },
+  "homepage": "https://github.com/GMTurbo/chisme2",
+  "dependencies": {
+    "ansi-color": "^0.2.1",
+    "socket.io": "^1.0.6",
+    "socket.io-client": "^1.0.6"
+  }
+}
