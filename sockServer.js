@@ -1,7 +1,9 @@
 var socketio = require('socket.io');
 var ss = require('socket.io-stream');
 
-var io = socketio.listen(3636);
+var port = process.argv[2] || 3636;
+
+var io = socketio.listen(process.argv[2] || 3636);
 
 var users = {};
 
@@ -91,4 +93,4 @@ io.sockets.on('connection', function (socket) {
 
 });
 
-console.log('Server running on localhost:3636');
+console.log('Server running on localhost:' + port);

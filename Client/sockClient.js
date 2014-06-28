@@ -7,8 +7,10 @@ var fs = require('fs'),
     through = require('through'),
     path = require('path');
 
+var port = process.argv[2] || 3636;
+
 var nick;
-var socket = socketio.connect('http://localhost:3636');
+var socket = socketio.connect('http://localhost:' + port);
 var rl = readline.createInterface(process.stdin, process.stdout);
 
 
@@ -63,8 +65,8 @@ var tr = through(onData, onEnd);
 socket.on('message', function (data) {
     var leader;
 
-    if (data.type == 'chat' && data.nick != nick) {
-        leader = color('<' + data.nick + '>', 'green');
+    if (data.type == 'chat') {
+        leader = color('<' + data.nick + (function(){return data.nick === nick ? '(me)' : ''  ;})() + '>', 'green');
         console_out(leader + data.message);
     } else if (data.type == 'notice') {
         console_out(color(data.message, 'cyan'));
