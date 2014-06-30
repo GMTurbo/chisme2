@@ -8,7 +8,10 @@ var fs = require('fs'),
     path = require('path');
 
 var nick;
-var socket = socketio.connect('http://localhost:3636');
+
+var port = process.argv[2] || 3636;
+
+var socket = socketio.connect('http://localhost:' + port);
 var rl = readline.createInterface(process.stdin, process.stdout);
 
 
@@ -84,6 +87,15 @@ var file = {
 
 socket.on('userDisconnect', function () {
     console_out(color('someone left :(', 'red'));
+});
+
+socket.on('receiveFile', function(data){
+   rl.question(data.from + " wants to send you " + data.filename + ". Accept? (y/n)", function(response){
+        data.send = response.toLowerCase() === 'y';
+        console.dir(data);
+        socket.emit('fileRequestResponse', data);
+        rl.prompt(true);
+   });
 });
 
 socket.on('dataBegin', function (data) {
@@ -162,23 +174,46 @@ var chat_command = function (cmd, arg) {
         break;
 
     case 'send':
-        console.log('sending file');
+       // console.log('sending file');
         var to = arg.match(/[a-z]+\b/)[0];
         var file = arg.substr(to.length + 1, arg.length);
-        console.dir([to, file]);
+        //console.dir([to, file]);
+       // var self = this;
         fs.exists(file, function (exists) {
             if (exists) {
-                console.log('sending file');
-                socket.emit('sendStart', {
-                    filename: path.basename(file),
-                    size: fs.statSync(file)["size"],
-                    to: to,
-                    from: nick
-                });
-                fs.createReadStream(file).pipe(tr);
+                
+                //socket.removeListener('fileRequestResponse');
+                
+                socket.on('fileRequestResponse', begin(file, to, nick, tr, socket));
+                
+                socket.emit('receiveFile', {to: to, from: nick, filename: path.basename(file)});
             }
         })
         break;
     }
 
+};
+
+var begin = function(file, to, from, thr, sock){
+    
+    //console.log('creating closure');
+    
+    return function(data){
+        console.log('receiving response')
+        if(data.send){
+
+            sock.emit('sendStart', {
+                filename: path.basename(file),
+                size: fs.statSync(file)["size"],
+                to: to,
+                from: from
+            });
+            
+            fs.createReadStream(file).pipe(thr);
+            
+        }
+        
+        sock.removeListener('fileRequestResponse');
+        
+    };
 };

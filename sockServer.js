@@ -1,7 +1,8 @@
 var socketio = require('socket.io');
 var ss = require('socket.io-stream');
 
-var io = socketio.listen(3636);
+var port = process.argv[2] || 3636;
+var io = socketio.listen(port);
 
 var users = {};
 
@@ -34,7 +35,47 @@ io.sockets.on('connection', function (socket) {
     socket.on('change', function (data) {
         users[socket.id].name = data.name;
     });
+    
+    socket.on('fileRequestResponse', function(data){
+        
+        var user = getUser(data.to);
 
+        if (data.to == 'all')
+            user = 'all';
+
+        if (!user) return;
+
+        if (user !== 'all') {
+            user.sock.emit('fileRequestResponse', data);
+        } else {
+            io.sockets.sockets.forEach(function (sock) {
+                if (socket.id !== sock.id) {
+                    sock.emit('fileRequestResponse', data);
+                }
+            });
+        }
+    });
+
+    socket.on('receiveFile', function(data){
+        
+        var user = getUser(data.to);
+
+        if (data.to == 'all')
+            user = 'all';
+
+        if (!user) return;
+
+        if (user !== 'all') {
+            user.sock.emit('receiveFile', data);
+        } else {
+            io.sockets.sockets.forEach(function (sock) {
+                if (socket.id !== sock.id) {
+                    sock.emit('receiveFile', data);
+                }
+            });
+        }
+    });
+    
     var targetUser = null;
     socket.on('sendStart', function (data) {
 
@@ -91,4 +132,4 @@ io.sockets.on('connection', function (socket) {
 
 });
 
-console.log('Server running on localhost:3636');
+console.log('Server running on localhost:' + port);
