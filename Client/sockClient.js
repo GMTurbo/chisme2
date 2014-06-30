@@ -121,7 +121,7 @@ socket.on('dataBegin', function (data) {
 
 socket.on('data', function (data) {
 
-    console_out('progress -> ' + (file.stream.bytesWritten / file.size) * 100);
+    console_out('progress -> ' + ((file.stream.bytesWritten / file.size) * 100).toPrecision(3) + '%');
     file.stream.write(data.chunk);
 
 });
