@@ -47,20 +47,26 @@ rl.on('line', function (line) {
 
 /***************THROUGH****************/
 var onData = function (data) {
+  if(!data){
+    socket.emit('sendDataDone', {
+          type: 'data',
+          chunk: null
+      });
+  }else{
     socket.emit('sendData', {
         type: 'data',
         chunk: data
     });
+  }
 };
 
 var onEnd = function () {
     socket.emit('sendDataDone', {
-        type: 'data',
-        chunk: null
-    });
+          type: 'data',
+          chunk: null
+      });
 };
 
-var tr = through(onData, onEnd);
 /***************SOCKETIO****************/
 
 socket.on('message', function (data) {
@@ -184,7 +190,7 @@ var chat_command = function (cmd, arg) {
                 
                 //socket.removeListener('fileRequestResponse');
                 
-                socket.on('fileRequestResponse', begin(file, to, nick, tr, socket));
+                socket.on('fileRequestResponse', begin(file, to, nick, through(onData, onEnd), socket));
                 
                 socket.emit('receiveFile', {to: to, from: nick, filename: path.basename(file)});
             }

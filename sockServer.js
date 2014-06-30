@@ -38,7 +38,7 @@ io.sockets.on('connection', function (socket) {
     
     socket.on('fileRequestResponse', function(data){
         
-        var user = getUser(data.to);
+        var user = getUser(data.from);
 
         if (data.to == 'all')
             user = 'all';
