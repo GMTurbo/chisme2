@@ -1,5 +1,4 @@
 var socketio = require('socket.io');
-var ss = require('socket.io-stream');
 
 var port = process.argv[2] || 3636;
 var io = socketio.listen(port);
