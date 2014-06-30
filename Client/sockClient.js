@@ -66,8 +66,8 @@ var tr = through(onData, onEnd);
 socket.on('message', function (data) {
     var leader;
 
-    if (data.type == 'chat' && data.nick != nick) {
-        leader = color('<' + data.nick + '>', 'green');
+    if (data.type == 'chat') {
+        leader = color('<' + data.nick + (function(){return data.nick === nick ? '(me)' : ''  ;})() + '>', 'green');
         console_out(leader + data.message);
     } else if (data.type == 'notice') {
         console_out(color(data.message, 'cyan'));
