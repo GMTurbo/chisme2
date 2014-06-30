@@ -1,3 +1,15 @@
+
+//TODO
+/*
+
+  - automatically create downloads folder
+  - sending progress reporting
+  - show file transfer response to sender
+  - emoji
+  
+
+*/
+
 var socketio = require('socket.io-client'),
     readline = require('readline'),
     util = require('util'),
@@ -11,7 +23,7 @@ var nick;
 
 var port = process.argv[2] || 3636;
 
-var socket = socketio.connect('http://localhost:' + port);
+var socket = socketio.connect('http://lannisport-nodejs-70776.usw1.nitrousbox.com:8080/');
 var rl = readline.createInterface(process.stdin, process.stdout);
 
 
@@ -52,6 +64,7 @@ var onData = function (data) {
           type: 'data',
           chunk: null
       });
+    console_out('file sent');
   }else{
     socket.emit('sendData', {
         type: 'data',
@@ -65,6 +78,7 @@ var onEnd = function () {
           type: 'data',
           chunk: null
       });
+    console_out('file sent');
 };
 
 /***************SOCKETIO****************/
