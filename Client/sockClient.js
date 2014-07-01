@@ -27,7 +27,7 @@ var rl = readline.createInterface(process.stdin, process.stdout);
 
 /***************READLINE****************/
 
-rl.question("Enter a username: ", function (name) {
+rl.question("Enter a username: ", function(name) {
     nick = name;
     var msg = nick + " has joined the chat";
     socket.emit('change', {
@@ -40,7 +40,7 @@ rl.question("Enter a username: ", function (name) {
     rl.prompt(true);
 });
 
-rl.on('line', function (line) {
+rl.on('line', function(line) {
     if (line[0] == "/" && line.length > 1) {
         var cmd = line.match(/[a-z]+\b/)[0];
         var arg = line.substr(cmd.length + 2, line.length);
@@ -59,9 +59,9 @@ rl.on('line', function (line) {
 
 //var buff = 0, fileSize = 0;
 
-var onData = function (buff, fileSize) {
+var onData = function(buff, fileSize) {
     // var count = 0;
-    return function (data) {
+    return function(data) {
         if (!data) {
 
             socket.emit('sendDataDone', {
@@ -88,7 +88,7 @@ var onData = function (buff, fileSize) {
     };
 };
 
-var onEnd = function () {
+var onEnd = function() {
     socket.emit('sendDataDone', {
         type: 'data',
         chunk: null
@@ -98,7 +98,7 @@ var onEnd = function () {
 
 /***************SOCKETIO****************/
 
-socket.on('message', function (data) {
+socket.on('message', function(data) {
     var leader;
 
     if (data.type == 'chat' && data.nick != nick) {
@@ -118,9 +118,9 @@ socket.on('message', function (data) {
     }
 });
 
-socket.on('showUsers', function (data) {
+socket.on('showUsers', function(data) {
     console_out(color('active users:', 'green_bg'))
-    data.users.forEach(function (user) {
+    data.users.forEach(function(user) {
         console_out(color(user, 'green'));
     });
 });
@@ -131,12 +131,12 @@ var file = {
     size: 0
 };
 
-socket.on('userDisconnect', function (data) {
+socket.on('userDisconnect', function(data) {
     console_out(color(data.user + ' left :(', 'red_bg'));
 });
 
-socket.on('receiveFile', function (data) {
-    rl.question(color(data.from + " wants to send you " + data.filename + ". Accept? (y/n)", 'cyan_bg'), function (response) {
+socket.on('receiveFile', function(data) {
+    rl.question(color(data.from + " wants to send you " + data.filename + ". Accept? (y/n)", 'cyan_bg'), function(response) {
         data.send = response.toLowerCase() === 'y';
         //console.dir(data);
         socket.emit('fileRequestResponse', data);
@@ -144,7 +144,7 @@ socket.on('receiveFile', function (data) {
     });
 });
 
-socket.on('dataBegin', function (data) {
+socket.on('dataBegin', function(data) {
     console_out(color('receiving data', 'blue_bg'));
     file.name = path.basename(data.filename);
     file.size = data.size;
@@ -156,7 +156,7 @@ socket.on('dataBegin', function (data) {
 
     file.stream = fs.createWriteStream(filepath, {});
 
-    file.stream.on('error', function (err) {
+    file.stream.on('error', function(err) {
         console.log(err);
     });
 
@@ -165,7 +165,7 @@ socket.on('dataBegin', function (data) {
 
 
 //var counter = 0;
-socket.on('data', function (data) {
+socket.on('data', function(data) {
 
     //if(counter % 20 === 0){
     printProgress(file.stream.bytesWritten, file.size);
@@ -175,7 +175,7 @@ socket.on('data', function (data) {
 
 });
 
-socket.on('dataEnd', function (data) {
+socket.on('dataEnd', function(data) {
     console_out(color('file tranfer complete', 'blue_bg'));
     counter = 0;
     file.stream.end();
@@ -184,13 +184,13 @@ socket.on('dataEnd', function (data) {
 
 /***************UTILS****************/
 
-var humanFileSize = function (size) {
+var humanFileSize = function(size) {
     if (!size) return '0 B';
     var i = Math.floor(Math.log(size) / Math.log(1024));
     return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
 };
 
-var printProgress = function (curr, total) {
+var printProgress = function(curr, total) {
     var percent = (curr / total);
     // console_out('progress -> ' +  * 100).toPrecision(3) + '%');
     var twens_percent = Math.ceil(percent * 25);
@@ -207,7 +207,7 @@ var printProgress = function (curr, total) {
     //console_out(color(buf.join(""), 'cyan_bg') + ending);
 }
 
-var console_out = function (msg) {
+var console_out = function(msg) {
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
     if (process.platform === 'win32') {
@@ -224,94 +224,94 @@ function clearLog(callback) {
     console.log(cmd);
 }
 
-var chat_command = function (cmd, arg) {
+var chat_command = function(cmd, arg) {
 
     switch (cmd) {
 
-    case 'nick':
-        var notice = nick + ' changed their name to ' + arg;
-        nick = arg;
-        socket.emit('change', {
-            name: nick
-        });
-        socket.emit('send', {
-            type: 'notice',
-            message: notice
-        });
-        break;
+        case 'nick':
+            var notice = nick + ' changed their name to ' + arg;
+            nick = arg;
+            socket.emit('change', {
+                name: nick
+            });
+            socket.emit('send', {
+                type: 'notice',
+                message: notice
+            });
+            break;
 
-    case 'msg':
+        case 'msg':
 
-        var to = arg.match(/[a-z]+\b/i)[0];
-        var message = arg.substr(to.length, arg.length);
-        socket.emit('send', {
-            type: 'tell',
-            message: message,
-            to: to,
-            from: nick
-        });
-        rl.prompt(true);
+            var to = arg.match(/[a-z]+\b/i)[0];
+            var message = arg.substr(to.length, arg.length);
+            socket.emit('send', {
+                type: 'tell',
+                message: message,
+                to: to,
+                from: nick
+            });
+            rl.prompt(true);
 
-        break;
+            break;
 
-    case 'me':
-        console_out(color('your name is ' + nick, 'blue_bg'));
-        break;
+        case 'me':
+            console_out(color('your name is ' + nick, 'blue_bg'));
+            break;
 
-    case 'send':
-        // console.log('sending file');
-        var to = arg.match(/[a-z]+\b/)[0];
-        var file = arg.substr(to.length + 1, arg.length);
-        file = file.replace(/"/g, "");
-        file = path.normalize(file);
-        //console.dir([to, file]);
-        // var self = this;
-        fs.exists(file, function (exists) {
-            if (exists) {
+        case 'send':
+            // console.log('sending file');
+            var to = arg.match(/[a-z]+\b/)[0];
+            var file = arg.substr(to.length + 1, arg.length);
+            file = file.replace(/"/g, "");
+            file = path.normalize(file);
+            //console.dir([to, file]);
+            // var self = this;
+            fs.exists(file, function(exists) {
+                if (exists) {
 
-                //socket.removeListener('fileRequestResponse');
+                    //socket.removeListener('fileRequestResponse');
 
-                socket.on('fileRequestResponse', begin(file, to, nick, through(onData(0, fs.statSync(file)["size"]), onEnd), socket));
+                    socket.on('fileRequestResponse', begin(file, to, nick, through(onData(0, fs.statSync(file)["size"]), onEnd), socket));
 
-                socket.emit('receiveFile', {
-                    to: to,
-                    from: nick,
-                    filename: path.basename(file)
-                });
-            }
-        })
-        break;
+                    socket.emit('receiveFile', {
+                        to: to,
+                        from: nick,
+                        filename: path.basename(file)
+                    });
+                }
+            })
+            break;
 
-    case 'users':
+        case 'users':
 
-        socket.emit('requestUsers', {
-            from: nick
-        });
+            socket.emit('requestUsers', {
+                from: nick
+            });
 
-        break;
+            break;
 
-    case 'clear':
-        clearLog();
-        break;
+        case 'clear':
+            clearLog();
+            break;
 
-    case 'help':
-        var buff = [];
-        buff.push(color('command list:', 'magenta_bg'));
-        buff.push(color('\t/nick -> change nick name - ex: /nick jesus', 'magenta_bg'));
-        buff.push(color('\t/msg -> private message - ex: /msg {user} hi', 'magenta_bg'));
-        buff.push(color('\t/me -> get your nick name', 'magenta_bg'));
-        buff.push(color('\t/send -> send file - ex: /send {user} {file}', 'magenta_bg'));
-        buff.push(color('\t/users -> list all users', 'magenta_bg'));
-        buff.push(color('\t/clear -> clear screen', 'magenta_bg'));
-        console_out(buff.join('\n'));
-        break;
+        case 'help':
+            var buff = [];
+            buff.push(color('command list:', 'magenta_bg'));
+            buff.push(color('\t/nick -> change nick name - ex: /nick jesus', 'magenta_bg'));
+            buff.push(color('\t/msg -> private message - ex: /msg {user} hi', 'magenta_bg'));
+            buff.push(color('\t/me -> get your nick name', 'magenta_bg'));
+            buff.push(color('\t/send -> send file - ex: /send {user} {file}', 'magenta_bg'));
+            buff.push(color('\t/users -> list all users', 'magenta_bg'));
+            buff.push(color('\t/clear -> clear screen', 'magenta_bg'));
+            console_out(buff.join('\n'));
+            break;
     }
 
 };
 
-var begin = function (file, to, from, thr, sock) {
+var begin = function(file, to, from, thr, sock) {
 
-    return function (data) {
+    return function(data) {
         //console.log('receiving response')
         if (data.send) {
 
