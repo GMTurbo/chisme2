@@ -60,31 +60,31 @@ rl.on('line', function (line) {
 //var buff = 0, fileSize = 0;
 
 var onData = function (buff, fileSize) {
-   // var count = 0;
-    return function(data){
-      if (!data) {
-  
-          socket.emit('sendDataDone', {
-              type: 'data',
-              chunk: null
-          });
-  
-          console_out(color('file sent', 'cyan_bg'));
-  
-      } else {
-          
-          
-          buff += data.length;
-          //if(count % 10 === 0){
+    // var count = 0;
+    return function (data) {
+        if (!data) {
+
+            socket.emit('sendDataDone', {
+                type: 'data',
+                chunk: null
+            });
+
+            console_out(color('file sent', 'cyan_bg'));
+
+        } else {
+
+
+            buff += data.length;
+            //if(count % 10 === 0){
             printProgress(buff, fileSize);
-          //}
-          socket.emit('sendData', {
-              type: 'data',
-              chunk: data
-          });
-  
-      }
-      //count++;
+            //}
+            socket.emit('sendData', {
+                type: 'data',
+                chunk: data
+            });
+
+        }
+        //count++;
     };
 };
 
@@ -102,9 +102,11 @@ socket.on('message', function (data) {
     var leader;
 
     if (data.type == 'chat' && data.nick != nick) {
-        leader = color('<' + data.nick /*+ (function () {
+        leader = color('<' + data.nick
+            /*+ (function () {
             return data.nick === nick ? '(me)' : '';
-        })() */ + '>', 'green');
+        })() */
+            + '>', 'green');
         console_out(leader + data.message);
     } else if (data.type == 'notice') {
         console_out(color(data.message, 'cyan'));
@@ -116,9 +118,11 @@ socket.on('message', function (data) {
     }
 });
 
-socket.on('showUsers', function(data){
-  console_out(color('active users:', 'green_bg'))
-  data.users.forEach(function(user){ console_out(color(user, 'green')); } );
+socket.on('showUsers', function (data) {
+    console_out(color('active users:', 'green_bg'))
+    data.users.forEach(function (user) {
+        console_out(color(user, 'green'));
+    });
 });
 
 var file = {
@@ -128,13 +132,13 @@ var file = {
 };
 
 socket.on('userDisconnect', function (data) {
-    console_out(color( data.user  + ' left :(', 'red_bg'));
+    console_out(color(data.user + ' left :(', 'red_bg'));
 });
 
 socket.on('receiveFile', function (data) {
-    rl.question(color(data.from + " wants to send you " + data.filename + ". Accept? (y/n)",'cyan_bg'), function (response) {
+    rl.question(color(data.from + " wants to send you " + data.filename + ". Accept? (y/n)", 'cyan_bg'), function (response) {
         data.send = response.toLowerCase() === 'y';
-       //console.dir(data);
+        //console.dir(data);
         socket.emit('fileRequestResponse', data);
         rl.prompt(true);
     });
@@ -145,8 +149,8 @@ socket.on('dataBegin', function (data) {
     file.name = path.basename(data.filename);
     file.size = data.size;
     file.progress = 0;
-    if(!fs.existsSync('./downloads/')){
-      fs.mkdirSync('./downloads');
+    if (!fs.existsSync('./downloads/')) {
+        fs.mkdirSync('./downloads');
     }
     var filepath = './downloads/' + file.name;
 
@@ -162,9 +166,9 @@ socket.on('dataBegin', function (data) {
 
 //var counter = 0;
 socket.on('data', function (data) {
-    
+
     //if(counter % 20 === 0){
-      printProgress(file.stream.bytesWritten, file.size);
+    printProgress(file.stream.bytesWritten, file.size);
     //}
     file.stream.write(data.chunk);
     //counter++;
@@ -180,34 +184,34 @@ socket.on('dataEnd', function (data) {
 
 /***************UTILS****************/
 
-var humanFileSize = function(size) {
-    if(!size) return '0 B';
-    var i = Math.floor( Math.log(size) / Math.log(1024) );
-    return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+var humanFileSize = function (size) {
+    if (!size) return '0 B';
+    var i = Math.floor(Math.log(size) / Math.log(1024));
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
 };
 
-var printProgress = function(curr, total){
-  var percent = (curr / total);
-     // console_out('progress -> ' +  * 100).toPrecision(3) + '%');
-  var twens_percent = Math.ceil(percent * 25);
-  var buf = [];
-  buf.push("[");
-  buf.push("==============================".slice(0, twens_percent));
-  buf.push(twens_percent ? ">" : " ");
-  buf.push("                              ".slice(0, 25-twens_percent));
-  buf.push("]");
-  buf.push("  ");
-  buf.push((percent * 100).toPrecision(3) + "% received (" + humanFileSize(percent*total) + ")");
-  var ending = /^win/.test(process.platform) ? '\033[0G' : '\r';
-  process.stdout.write(color(buf.join(""), 'cyan_bg') + ending);
-  //console_out(color(buf.join(""), 'cyan_bg') + ending);
+var printProgress = function (curr, total) {
+    var percent = (curr / total);
+    // console_out('progress -> ' +  * 100).toPrecision(3) + '%');
+    var twens_percent = Math.ceil(percent * 25);
+    var buf = [];
+    buf.push("[");
+    buf.push("==============================".slice(0, twens_percent));
+    buf.push(twens_percent ? ">" : " ");
+    buf.push("                              ".slice(0, 25 - twens_percent));
+    buf.push("]");
+    buf.push("  ");
+    buf.push((percent * 100).toPrecision(3) + "% received (" + humanFileSize(percent * total) + ")");
+    var ending = /^win/.test(process.platform) ? '\033[0G' : '\r';
+    process.stdout.write(color(buf.join(""), 'cyan_bg') + ending);
+    //console_out(color(buf.join(""), 'cyan_bg') + ending);
 }
 
 var console_out = function (msg) {
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
     if (process.platform === 'win32') {
-          //console.log('\033[2J');
+        //console.log('\033[2J');
     }
     console.log(msg);
     rl.prompt(true);
@@ -267,7 +271,7 @@ var chat_command = function (cmd, arg) {
 
                 //socket.removeListener('fileRequestResponse');
 
-                socket.on('fileRequestResponse', begin(file, to, nick, through(onData(0,fs.statSync(file)["size"]), onEnd), socket));
+                socket.on('fileRequestResponse', begin(file, to, nick, through(onData(0, fs.statSync(file)["size"]), onEnd), socket));
 
                 socket.emit('receiveFile', {
                     to: to,
@@ -277,30 +281,30 @@ var chat_command = function (cmd, arg) {
             }
         })
         break;
-        
-        case 'users':
-          
-          socket.emit('requestUsers', {
-             from: nick
-          });
-          
-          break;
-          
-        case 'clear':
-          clearLog();
-          break;
-          
-        case 'help':
-          var buff = [];
-          buff.push(color('command list:', 'magenta_bg'));
-          buff.push(color('\t/nick -> change nick name - ex: /nick jesus', 'magenta_bg'));
-          buff.push(color('\t/msg -> private message - ex: /msg {user} hi', 'magenta_bg'));
-          buff.push(color('\t/me -> get your nick name', 'magenta_bg'));
-          buff.push(color('\t/send -> send file - ex: /send {user} {file}', 'magenta_bg'));
-          buff.push(color('\t/users -> list all users', 'magenta_bg'));
-          buff.push(color('\t/clear -> clear screen', 'magenta_bg'));
-          console_out(buff.join('\n'));
-          break;
+
+    case 'users':
+
+        socket.emit('requestUsers', {
+            from: nick
+        });
+
+        break;
+
+    case 'clear':
+        clearLog();
+        break;
+
+    case 'help':
+        var buff = [];
+        buff.push(color('command list:', 'magenta_bg'));
+        buff.push(color('\t/nick -> change nick name - ex: /nick jesus', 'magenta_bg'));
+        buff.push(color('\t/msg -> private message - ex: /msg {user} hi', 'magenta_bg'));
+        buff.push(color('\t/me -> get your nick name', 'magenta_bg'));
+        buff.push(color('\t/send -> send file - ex: /send {user} {file}', 'magenta_bg'));
+        buff.push(color('\t/users -> list all users', 'magenta_bg'));
+        buff.push(color('\t/clear -> clear screen', 'magenta_bg'));
+        console_out(buff.join('\n'));
+        break;
     }
 
 };
@@ -310,7 +314,7 @@ var begin = function (file, to, from, thr, sock) {
     return function (data) {
         //console.log('receiving response')
         if (data.send) {
-          
+
             fileSize = fs.statSync(file)["size"];
             buff = 0;
             sock.emit('sendStart', {
@@ -322,10 +326,10 @@ var begin = function (file, to, from, thr, sock) {
 
             fs.createReadStream(file).pipe(thr);
 
-        }else{
-          
-          console_out(color(to + ' rejected ' + path.basename(file), 'red_bg'));
-          
+        } else {
+
+            console_out(color(to + ' rejected ' + path.basename(file), 'red_bg'));
+
         }
 
         sock.removeListener('fileRequestResponse');

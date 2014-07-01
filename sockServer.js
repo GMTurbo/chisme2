@@ -37,17 +37,19 @@ io.sockets.on('connection', function (socket) {
     socket.on('change', function (data) {
         users[socket.id].name = data.name;
     });
-    
-    socket.on('requestUsers', function(data){
-      var user = getUser(data.from);
-      if(!user) return;
-      
-      var list = [];
-      for (var i in users) {
-        list.push(users[i].name);
-      }
-      
-      user.sock.emit('showUsers', {users:list})
+
+    socket.on('requestUsers', function (data) {
+        var user = getUser(data.from);
+        if (!user) return;
+
+        var list = [];
+        for (var i in users) {
+            list.push(users[i].name);
+        }
+
+        user.sock.emit('showUsers', {
+            users: list
+        })
     });
 
     socket.on('fileRequestResponse', function (data) {
@@ -143,8 +145,12 @@ io.sockets.on('connection', function (socket) {
         }
 
     });
-    
-    socket.emit('message', {type: 'chat', nick: 'server', message: "/help for available commands"});
+
+    socket.emit('message', {
+        type: 'chat',
+        nick: 'server',
+        message: "/help for available commands"
+    });
 
 });
 
