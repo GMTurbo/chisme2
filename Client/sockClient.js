@@ -1,4 +1,3 @@
-
 //TODO
 /*
 
@@ -9,7 +8,6 @@
   
 
 */
-
 var socketio = require('socket.io-client'),
     readline = require('readline'),
     util = require('util'),
@@ -58,26 +56,39 @@ rl.on('line', function (line) {
 });
 
 /***************THROUGH****************/
-var onData = function (data) {
-  if(!data){
-    socket.emit('sendDataDone', {
-          type: 'data',
-          chunk: null
-      });
-    console_out('file sent');
-  }else{
-    socket.emit('sendData', {
-        type: 'data',
-        chunk: data
-    });
-  }
+
+//var buff = 0, fileSize = 0;
+
+var onData = function (buff, fileSize) {
+    
+    return function(data){
+      if (!data) {
+  
+          socket.emit('sendDataDone', {
+              type: 'data',
+              chunk: null
+          });
+  
+          console_out('file sent');
+  
+      } else {
+          
+          buff += data.length;
+          console_out('progress -> ' + ((buff / fileSize) * 100).toPrecision(3) + '%');
+          socket.emit('sendData', {
+              type: 'data',
+              chunk: data
+          });
+  
+      }
+    };
 };
 
 var onEnd = function () {
     socket.emit('sendDataDone', {
-          type: 'data',
-          chunk: null
-      });
+        type: 'data',
+        chunk: null
+    });
     console_out('file sent');
 };
 
@@ -86,17 +97,24 @@ var onEnd = function () {
 socket.on('message', function (data) {
     var leader;
 
-    if (data.type == 'chat') {
-        leader = color('<' + data.nick + (function(){return data.nick === nick ? '(me)' : ''  ;})() + '>', 'green');
+    if (data.type == 'chat' && data.nick != nick) {
+        leader = color('<' + data.nick /*+ (function () {
+            return data.nick === nick ? '(me)' : '';
+        })() */ + '>', 'green');
         console_out(leader + data.message);
     } else if (data.type == 'notice') {
         console_out(color(data.message, 'cyan'));
-    } else if (data.type == 'tell' && data.to == nick) {
-        leader = color('[' + data.from + '->' + data.to + ']', 'blue');
+    } else if (data.type == 'tell' && (data.to == nick || data.from == nick)) {
+        leader = color('[' + data.from + '->' + data.to + ']', 'magenta_bg');
         console_out(leader + data.message);
     } else if (data.type == 'emote') {
         console_out(color(data.message, 'cyan'));
     }
+});
+
+socket.on('showUsers', function(data){
+  console_out(color('active users:', 'green_bg'))
+  data.users.forEach(function(user){ console_out(color(user, 'green')); } );
 });
 
 var file = {
@@ -105,17 +123,17 @@ var file = {
     size: 0
 };
 
-socket.on('userDisconnect', function () {
-    console_out(color('someone left :(', 'red'));
+socket.on('userDisconnect', function (data) {
+    console_out(color( data.user  + ' left :(', 'red_bg'));
 });
 
-socket.on('receiveFile', function(data){
-   rl.question(data.from + " wants to send you " + data.filename + ". Accept? (y/n)", function(response){
+socket.on('receiveFile', function (data) {
+    rl.question(data.from + " wants to send you " + data.filename + ". Accept? (y/n)", function (response) {
         data.send = response.toLowerCase() === 'y';
         console.dir(data);
         socket.emit('fileRequestResponse', data);
         rl.prompt(true);
-   });
+    });
 });
 
 socket.on('dataBegin', function (data) {
@@ -177,7 +195,7 @@ var chat_command = function (cmd, arg) {
 
     case 'msg':
 
-        var to = arg.match(/[a-zA-Z]+\b/)[0];
+        var to = arg.match(/[a-z]+\b/i)[0];
         var message = arg.substr(to.length, arg.length);
         socket.emit('send', {
             type: 'tell',
@@ -190,50 +208,68 @@ var chat_command = function (cmd, arg) {
         break;
 
     case 'me':
-        console_out('that is not a valid command');
+        console_out(color('your name is ' + nick, 'blue_bg'));
         break;
 
     case 'send':
-       // console.log('sending file');
+        // console.log('sending file');
         var to = arg.match(/[a-z]+\b/)[0];
         var file = arg.substr(to.length + 1, arg.length);
-        //console.dir([to, file]);
-       // var self = this;
+        file = file.replace(/"/g, "");
+        file = path.normalize(file);
+        console.dir([to, file]);
+        // var self = this;
         fs.exists(file, function (exists) {
             if (exists) {
-                
+
                 //socket.removeListener('fileRequestResponse');
-                
-                socket.on('fileRequestResponse', begin(file, to, nick, through(onData, onEnd), socket));
-                
-                socket.emit('receiveFile', {to: to, from: nick, filename: path.basename(file)});
+
+                socket.on('fileRequestResponse', begin(file, to, nick, through(onData(0,fs.statSync(file)["size"]), onEnd), socket));
+
+                socket.emit('receiveFile', {
+                    to: to,
+                    from: nick,
+                    filename: path.basename(file)
+                });
             }
         })
         break;
+        
+        case 'users':
+          
+          socket.emit('requestUsers', {
+             from: nick
+          });
+          
+          break;
     }
 
 };
 
-var begin = function(file, to, from, thr, sock){
-    
-    //console.log('creating closure');
-    
-    return function(data){
-        console.log('receiving response')
-        if(data.send){
+var begin = function (file, to, from, thr, sock) {
 
+    return function (data) {
+        console.log('receiving response')
+        if (data.send) {
+          
+            fileSize = fs.statSync(file)["size"];
+            buff = 0;
             sock.emit('sendStart', {
                 filename: path.basename(file),
-                size: fs.statSync(file)["size"],
+                size: fileSize,
                 to: to,
                 from: from
             });
-            
+
             fs.createReadStream(file).pipe(thr);
-            
+
+        }else{
+          
+          console_out(to + ' rejected ' + path.basename(file));
+          
         }
-        
+
         sock.removeListener('fileRequestResponse');
-        
+
     };
 };

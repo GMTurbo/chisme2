@@ -23,8 +23,11 @@ io.sockets.on('connection', function (socket) {
     };
 
     socket.on('disconnect', function () {
+        var user = users[socket.id].name;
         delete users[socket.id];
-        io.sockets.emit('userDisconnect');
+        io.sockets.emit('userDisconnect', {
+            user: user
+        });
     });
 
     socket.on('send', function (data) {
@@ -35,8 +38,20 @@ io.sockets.on('connection', function (socket) {
         users[socket.id].name = data.name;
     });
     
-    socket.on('fileRequestResponse', function(data){
-        
+    socket.on('requestUsers', function(data){
+      var user = getUser(data.from);
+      if(!user) return;
+      
+      var list = [];
+      for (var i in users) {
+        list.push(users[i].name);
+      }
+      
+      user.sock.emit('showUsers', {users:list})
+    });
+
+    socket.on('fileRequestResponse', function (data) {
+
         var user = getUser(data.from);
 
         if (data.to == 'all')
@@ -55,8 +70,8 @@ io.sockets.on('connection', function (socket) {
         }
     });
 
-    socket.on('receiveFile', function(data){
-        
+    socket.on('receiveFile', function (data) {
+
         var user = getUser(data.to);
 
         if (data.to == 'all')
@@ -74,7 +89,7 @@ io.sockets.on('connection', function (socket) {
             });
         }
     });
-    
+
     var targetUser = null;
     socket.on('sendStart', function (data) {
 
