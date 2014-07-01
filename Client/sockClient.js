@@ -60,7 +60,7 @@ rl.on('line', function (line) {
 //var buff = 0, fileSize = 0;
 
 var onData = function (buff, fileSize) {
-    var count = 0;
+   // var count = 0;
     return function(data){
       if (!data) {
   
@@ -69,22 +69,22 @@ var onData = function (buff, fileSize) {
               chunk: null
           });
   
-          console_out('file sent');
+          console_out(color('file sent', 'cyan_bg'));
   
       } else {
           
           
           buff += data.length;
-          if(count % 10 === 0){
+          //if(count % 10 === 0){
             printProgress(buff, fileSize);
-          }
+          //}
           socket.emit('sendData', {
               type: 'data',
               chunk: data
           });
   
       }
-      count++;
+      //count++;
     };
 };
 
@@ -93,7 +93,7 @@ var onEnd = function () {
         type: 'data',
         chunk: null
     });
-    console_out('file sent');
+    console_out(color('file sent', 'cyan_bg'));
 };
 
 /***************SOCKETIO****************/
@@ -158,6 +158,34 @@ socket.on('dataBegin', function (data) {
 
 });
 
+
+
+//var counter = 0;
+socket.on('data', function (data) {
+    
+    //if(counter % 20 === 0){
+      printProgress(file.stream.bytesWritten, file.size);
+    //}
+    file.stream.write(data.chunk);
+    //counter++;
+
+});
+
+socket.on('dataEnd', function (data) {
+    console_out(color('file tranfer complete', 'blue_bg'));
+    counter = 0;
+    file.stream.end();
+});
+
+
+/***************UTILS****************/
+
+var humanFileSize = function(size) {
+    if(!size) return '0 B';
+    var i = Math.floor( Math.log(size) / Math.log(1024) );
+    return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+};
+
 var printProgress = function(curr, total){
   var percent = (curr / total);
      // console_out('progress -> ' +  * 100).toPrecision(3) + '%');
@@ -169,30 +197,11 @@ var printProgress = function(curr, total){
   buf.push("                              ".slice(0, 25-twens_percent));
   buf.push("]");
   buf.push("  ");
-  buf.push((percent * 100).toPrecision(3) + "% received")
+  buf.push((percent * 100).toPrecision(3) + "% received (" + humanFileSize(percent*total) + ")");
   var ending = /^win/.test(process.platform) ? '\033[0G' : '\r';
   process.stdout.write(color(buf.join(""), 'cyan_bg') + ending);
-  //console_out(color(buf.join(""), 'cyan_bg'));
+  //console_out(color(buf.join(""), 'cyan_bg') + ending);
 }
-
-var counter = 0;
-socket.on('data', function (data) {
-    
-    if(counter % 20 === 0){
-      printProgress(file.stream.bytesWritten, file.size);
-    }
-    file.stream.write(data.chunk);
-    counter++;
-
-});
-
-socket.on('dataEnd', function (data) {
-    console_out(color('file tranfer complete', 'blue_bg'));
-    counter = 0;
-    file.stream.end();
-});
-
-/***************UTILS****************/
 
 var console_out = function (msg) {
     process.stdout.clearLine();
