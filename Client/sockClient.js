@@ -128,7 +128,7 @@ socket.on('userDisconnect', function (data) {
 });
 
 socket.on('receiveFile', function (data) {
-    rl.question(data.from + " wants to send you " + data.filename + ". Accept? (y/n)", function (response) {
+    rl.question(color(data.from + " wants to send you " + data.filename + ". Accept? (y/n)",'cyan_bg'), function (response) {
         data.send = response.toLowerCase() === 'y';
         console.dir(data);
         socket.emit('fileRequestResponse', data);
@@ -137,10 +137,13 @@ socket.on('receiveFile', function (data) {
 });
 
 socket.on('dataBegin', function (data) {
-    console.log('receiving data');
+    console_out(color('receiving data', 'blue_bg'));
     file.name = path.basename(data.filename);
     file.size = data.size;
     file.progress = 0;
+    if(!fs.existsSync('./downloads/')){
+      fs.mkdirSync('./downloads');
+    }
     var filepath = './downloads/' + file.name;
 
     file.stream = fs.createWriteStream(filepath, {});
@@ -151,15 +154,31 @@ socket.on('dataBegin', function (data) {
 
 });
 
+var counter = 0;
 socket.on('data', function (data) {
-
-    console_out('progress -> ' + ((file.stream.bytesWritten / file.size) * 100).toPrecision(3) + '%');
+    
+    if(counter % 20 === 0){
+      var percent = (file.stream.bytesWritten / file.size);
+     // console_out('progress -> ' +  * 100).toPrecision(3) + '%');
+      var twens_percent = Math.ceil(percent * 25);
+      var buf = [];
+      buf.push("[");
+      buf.push("==============================".slice(0, twens_percent));
+      buf.push(twens_percent ? ">" : " ");
+      buf.push("                              ".slice(0, 25-twens_percent));
+      buf.push("]");
+      buf.push("  ");
+      buf.push((percent * 100).toPrecision(3) + "% received")
+      console_out(color(buf.join(""), 'cyan_bg'));
+    }
     file.stream.write(data.chunk);
+    counter++;
 
 });
 
 socket.on('dataEnd', function (data) {
-    console_out('saving file');
+    console_out(color('saving file', 'blue_bg'));
+    counter = 0;
     file.stream.end();
 });
 
@@ -169,13 +188,18 @@ var console_out = function (msg) {
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
     if (process.platform === 'win32') {
-        //  util.print("\u001b[2J\u001b[0;0H");
+          //console.log('\033[2J');
     }
     console.log(msg);
     rl.prompt(true);
 };
 
 /***************COMMANDS****************/
+
+function clearLog(callback) {
+    var cmd = /^win/.test(process.platform) ? '\u001b[2J\u001b[0;0H' : '\033[2J';
+    console.log(cmd);
+}
 
 var chat_command = function (cmd, arg) {
 
@@ -217,7 +241,7 @@ var chat_command = function (cmd, arg) {
         var file = arg.substr(to.length + 1, arg.length);
         file = file.replace(/"/g, "");
         file = path.normalize(file);
-        console.dir([to, file]);
+        //console.dir([to, file]);
         // var self = this;
         fs.exists(file, function (exists) {
             if (exists) {
@@ -242,6 +266,22 @@ var chat_command = function (cmd, arg) {
           });
           
           break;
+          
+        case 'clear':
+          clearLog();
+          break;
+          
+        case 'help':
+          var buff = [];
+          buff.push(color('command list:', 'magenta_bg'));
+          buff.push(color('\t/nick -> change nick name - ex: /nick jesus', 'magenta_bg'));
+          buff.push(color('\t/msg -> private message - ex: /msg {user} hi', 'magenta_bg'));
+          buff.push(color('\t/me -> get your nick name', 'magenta_bg'));
+          buff.push(color('\t/send -> send file - ex: /send {user} {file}', 'magenta_bg'));
+          buff.push(color('\t/users -> list all users', 'magenta_bg'));
+          buff.push(color('\t/clear -> clear screen', 'magenta_bg'));
+          console_out(buff.join('\n'));
+          break;
     }
 
 };
@@ -249,7 +289,7 @@ var chat_command = function (cmd, arg) {
 var begin = function (file, to, from, thr, sock) {
 
     return function (data) {
-        console.log('receiving response')
+        //console.log('receiving response')
         if (data.send) {
           
             fileSize = fs.statSync(file)["size"];
@@ -265,7 +305,7 @@ var begin = function (file, to, from, thr, sock) {
 
         }else{
           
-          console_out(to + ' rejected ' + path.basename(file));
+          console_out(color(to + ' rejected ' + path.basename(file), 'red_bg'));
           
         }
 

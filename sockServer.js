@@ -143,6 +143,8 @@ io.sockets.on('connection', function (socket) {
         }
 
     });
+    
+    socket.emit('message', {type: 'chat', nick: 'server', message: "/help for available commands"});
 
 });
 
