@@ -24,9 +24,13 @@ var port = args.port || 8080;
 var server = args.server || 'http://localhost';
 var fullServer = server + ':' + port;
 
-console.log('attempting to connect to ' + fullServer);
+
 
 var socket = socketio.connect(fullServer);
+
+socket.on('connect', function(data){
+  console_out(color('successfully connected :)', 'cyan_bg'));
+});
 
 //var socket = socketio.connect('http://lannisport-nodejs-70776.usw1.nitrousbox.com:8080/');
 var rl = readline.createInterface(process.stdin, process.stdout);
@@ -343,3 +347,5 @@ var begin = function(file, to, from, thr, sock) {
 
     };
 };
+
+console_out(color('attempting to connect to ' + fullServer, 'magenta_bg'));
