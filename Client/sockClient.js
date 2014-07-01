@@ -11,7 +11,8 @@
 var socketio = require('socket.io-client'),
     readline = require('readline'),
     util = require('util'),
-    color = require('ansi-color').set;
+    color = require('ansi-color').set,
+    args = require('minimist')(process.argv.slice(2));
 
 var fs = require('fs'),
     through = require('through'),
@@ -19,9 +20,15 @@ var fs = require('fs'),
 
 var nick;
 
-var port = process.argv[2] || 3636;
+var port = args.port || 8080;
+var server = args.server || 'http://localhost';
+var fullServer = server + ':' + port;
 
-var socket = socketio.connect('http://lannisport-nodejs-70776.usw1.nitrousbox.com:8080/');
+console.log('attempting to connect to ' + fullServer);
+
+var socket = socketio.connect(fullServer);
+
+//var socket = socketio.connect('http://lannisport-nodejs-70776.usw1.nitrousbox.com:8080/');
 var rl = readline.createInterface(process.stdin, process.stdout);
 
 
