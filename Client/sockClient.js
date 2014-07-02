@@ -1,9 +1,6 @@
 //TODO
 /*
 
-  - automatically create downloads folder
-  - sending progress reporting
-  - show file transfer response to sender
   - emoji
   - notification sounds
   - blink prompt on new message
@@ -318,6 +315,9 @@ var chat_command = function(cmd, arg) {
                         from: nick,
                         filename: path.basename(file)
                     });
+                    console_out(color('waiting for response...', 'blue_bg'));
+                }else{
+                  console_out(color('could not find ' + file, 'red_bg'));
                 }
             })
             break;

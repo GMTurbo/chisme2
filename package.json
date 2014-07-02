@@ -1,6 +1,6 @@
 {
   "name": "chisme2",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "socket.io client for real time chat via cli",
   "main": "sockServer.js",
   "scripts": {
