@@ -5,9 +5,14 @@
   - sending progress reporting
   - show file transfer response to sender
   - emoji
+  - notification sounds
+  - blink prompt on new message
+  - Capital names have issues with file sending
+  - set user states (afk, online)
+  - timestamp user messages
   
-
 */
+
 var socketio = require('socket.io-client'),
     readline = require('readline'),
     util = require('util'),
@@ -18,13 +23,21 @@ var fs = require('fs'),
     through = require('through'),
     path = require('path');
 
+var exec = require('child_process').exec;
+
+var sfx = null;
+
+try{
+  sfx = require("sfx");
+}catch(e){
+  //you're running windows eh?
+}
+
 var nick;
 
 var port = args.port || 8080;
-var server = args.server || 'http://localhost';
+var server = args.server || 'http://lannisport-nodejs-70776.usw1.nitrousbox.com';
 var fullServer = server + ':' + port;
-
-
 
 var socket = socketio.connect(fullServer);
 
@@ -107,6 +120,8 @@ var onEnd = function() {
     console_out(color('file sent', 'cyan_bg'));
 };
 
+
+
 /***************SOCKETIO****************/
 
 socket.on('message', function(data) {
@@ -119,6 +134,7 @@ socket.on('message', function(data) {
         })() */
             + '>', 'green');
         console_out(leader + data.message);
+        beep();
     } else if (data.type == 'notice') {
         console_out(color(data.message, 'cyan'));
     } else if (data.type == 'tell' && (data.to == nick || data.from == nick)) {
@@ -228,12 +244,25 @@ var console_out = function(msg) {
     rl.prompt(true);
 };
 
-/***************COMMANDS****************/
-
 function clearLog(callback) {
     var cmd = /^win/.test(process.platform) ? '\u001b[2J\u001b[0;0H' : '\033[2J';
     console.log(cmd);
 }
+
+/***************AUDIO****************/
+var beep = function(){
+  
+   if(/^win/.test(process.platform)){
+    exec('powershell -c (New-Object Media.SoundPlayer "notification.wav").PlaySync();', function (error, stdout, stderr) {
+      // output is in stdout
+    });
+  }else if(sfx){
+    sfx.play("ping");
+  }
+};
+
+/***************COMMANDS****************/
+
 
 var chat_command = function(cmd, arg) {
 

@@ -25,6 +25,7 @@
   "dependencies": {
     "ansi-color": "^0.2.1",
     "minimist": "^0.2.0",
+    "sfx": "^0.1.1",
     "socket.io": "^1.0.6",
     "socket.io-client": "^1.0.6",
     "through": "^2.3.4"
