@@ -27,10 +27,10 @@ var exec = require('child_process').exec;
 
 var sfx = null;
 
-try{
-  sfx = require("sfx");
-}catch(e){
-  //you're running windows eh?
+try {
+    sfx = require("sfx");
+} catch (e) {
+    //you're running windows eh?
 }
 
 var nick;
@@ -41,8 +41,8 @@ var fullServer = server + ':' + port;
 
 var socket = socketio.connect(fullServer);
 
-socket.on('connect', function(data){
-  console_out(color('successfully connected :)', 'cyan_bg'));
+socket.on('connect', function(data) {
+    console_out(color('successfully connected :)', 'cyan_bg'));
 });
 
 //var socket = socketio.connect('http://lannisport-nodejs-70776.usw1.nitrousbox.com:8080/');
@@ -250,15 +250,15 @@ function clearLog(callback) {
 }
 
 /***************AUDIO****************/
-var beep = function(){
-  
-   if(/^win/.test(process.platform)){
-    exec('powershell -c (New-Object Media.SoundPlayer "notification.wav").PlaySync();', function (error, stdout, stderr) {
-      // output is in stdout
-    });
-  }else if(sfx){
-    sfx.play("ping");
-  }
+var beep = function() {
+
+    if (/^win/.test(process.platform)) {
+        exec('powershell -c (New-Object Media.SoundPlayer "notification.wav").PlaySync();', function(error, stdout, stderr) {
+            // output is in stdout
+        });
+    } else if (sfx) {
+        sfx.play("ping");
+    }
 };
 
 /***************COMMANDS****************/
