@@ -377,7 +377,7 @@ var chat_command = function(cmd, arg) {
             buff.push(color('\t/send -> send file - ex: /send {user} {file}', 'magenta'));
             buff.push(color('\t/users -> list all users', 'magenta'));
             buff.push(color('\t/clear -> clear screen', 'magenta'));
-            buff.push(color('\t/ascii-> ASCI text - ex: /asci {user} hi', 'magenta'));
+            buff.push(color('\t/ascii-> ASCI text - ex: /ascii {user} hi', 'magenta'));
             console_out(buff.join('\n'));
 
             break;
