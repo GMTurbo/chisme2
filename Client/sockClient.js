@@ -136,7 +136,7 @@ socket.on('message', function(data) {
         beep();
     } else if (data.type == 'notice') {
         console_out(color(data.message, 'cyan'));
-    } else if (data.type == 'tell' && (data.to == nick || data.from == nick)) {
+    } else if (data.type == 'tell' && (data.to == nick || data.from == nick) || data.to === 'all') {
         leader = color('[' + data.from + '->' + data.to + ']', 'magenta_bg');
         console_out(leader + data.message);
     } else if (data.type == 'emote') {
@@ -351,20 +351,22 @@ var chat_command = function(cmd, arg) {
           
             var buff = [];
             buff.push(color('command list:', 'magenta_bg'));
-            buff.push(color('\t/nick -> change nick name - ex: /nick jesus', 'magenta_bg'));
-            buff.push(color('\t/msg -> private message - ex: /msg {user} hi', 'magenta_bg'));
-            buff.push(color('\t/me -> get your nick name', 'magenta_bg'));
-            buff.push(color('\t/send -> send file - ex: /send {user} {file}', 'magenta_bg'));
-            buff.push(color('\t/users -> list all users', 'magenta_bg'));
-            buff.push(color('\t/clear -> clear screen', 'magenta_bg'));
+            buff.push(color('\t/nick -> change nick name - ex: /nick jesus', 'magenta'));
+            buff.push(color('\t/msg -> private message - ex: /msg {user} hi', 'magenta'));
+            buff.push(color('\t/me -> get your nick name', 'magenta'));
+            buff.push(color('\t/send -> send file - ex: /send {user} {file}', 'magenta'));
+            buff.push(color('\t/users -> list all users', 'magenta'));
+            buff.push(color('\t/clear -> clear screen', 'magenta'));
+            buff.push(color('\t/ascii-> ASCI text - ex: /asci {user} hi', 'magenta'));
             console_out(buff.join('\n'));
             
             break;
             
-        case 'shout':
+        case 'ascii':
             
             var to = arg.match(/[a-z]+\b/i)[0];
             var message = arg.substr(to.length, arg.length);
+            
             figlet(message, function(err, data) {
               
               if (err) {
@@ -382,7 +384,11 @@ var chat_command = function(cmd, arg) {
             //  socket.emit('sendShout', {to:to, message:data});
             });
 
-            break;
+          break;
+            
+        default:
+            console_out(color('command not supported', 'red_bg'));
+          break;
     }
 
 };
