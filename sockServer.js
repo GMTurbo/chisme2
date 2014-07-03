@@ -37,6 +37,26 @@ io.sockets.on('connection', function (socket) {
     socket.on('change', function (data) {
         users[socket.id].name = data.name;
     });
+    
+    socket.on('sendShout', function(data){
+      
+        var user = getUser(data.to);
+
+        if (data.to == 'all')
+            user = 'all';
+
+        if (!user) return;
+
+        if (user !== 'all') {
+            user.sock.emit('shout', data);
+        } else {
+            io.sockets.sockets.forEach(function (sock) {
+                if (socket.id !== sock.id) {
+                    sock.emit('shout', data);
+                }
+            });
+        }
+    });
 
     socket.on('requestUsers', function (data) {
         var user = getUser(data.from);
@@ -49,7 +69,7 @@ io.sockets.on('connection', function (socket) {
 
         user.sock.emit('showUsers', {
             users: list
-        })
+        });
     });
 
     socket.on('fileRequestResponse', function (data) {

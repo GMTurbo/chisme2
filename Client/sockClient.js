@@ -22,6 +22,8 @@ var fs = require('fs'),
 
 var exec = require('child_process').exec;
 
+var figlet = require('figlet');
+
 var sfx = null;
 
 try {
@@ -149,6 +151,10 @@ socket.on('showUsers', function(data) {
     });
 });
 
+socket.on('shout', function(data){
+  
+});
+
 var file = {
     name: '',
     stream: null,
@@ -185,7 +191,6 @@ socket.on('dataBegin', function(data) {
     });
 
 });
-
 
 
 //var counter = 0;
@@ -266,15 +271,19 @@ var chat_command = function(cmd, arg) {
     switch (cmd) {
 
         case 'nick':
+          
             var notice = nick + ' changed their name to ' + arg;
             nick = arg;
+            
             socket.emit('change', {
                 name: nick
             });
+            
             socket.emit('send', {
                 type: 'notice',
                 message: notice
             });
+            
             break;
 
         case 'msg':
@@ -292,7 +301,9 @@ var chat_command = function(cmd, arg) {
             break;
 
         case 'me':
+          
             console_out(color('your name is ' + nick, 'blue_bg'));
+            
             break;
 
         case 'send':
@@ -331,10 +342,13 @@ var chat_command = function(cmd, arg) {
             break;
 
         case 'clear':
+          
             clearLog();
+            
             break;
 
         case 'help':
+          
             var buff = [];
             buff.push(color('command list:', 'magenta_bg'));
             buff.push(color('\t/nick -> change nick name - ex: /nick jesus', 'magenta_bg'));
@@ -344,6 +358,30 @@ var chat_command = function(cmd, arg) {
             buff.push(color('\t/users -> list all users', 'magenta_bg'));
             buff.push(color('\t/clear -> clear screen', 'magenta_bg'));
             console_out(buff.join('\n'));
+            
+            break;
+            
+        case 'shout':
+            
+            var to = arg.match(/[a-z]+\b/i)[0];
+            var message = arg.substr(to.length, arg.length);
+            figlet(message, function(err, data) {
+              
+              if (err) {
+                  console.log('Something went wrong...');
+                  console.dir(err);
+                  return;
+              }
+              
+              socket.emit('send', {
+                type: 'tell',
+                message: color('\n' + data, 'magenta_bg'),
+                to: to,
+                from: nick
+              });
+            //  socket.emit('sendShout', {to:to, message:data});
+            });
+
             break;
     }
 

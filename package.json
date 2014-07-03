@@ -24,6 +24,7 @@
   "homepage": "https://github.com/GMTurbo/chisme2",
   "dependencies": {
     "ansi-color": "^0.2.1",
+    "figlet": "^1.0.9",
     "minimist": "^0.2.0",
     "sfx": "^0.1.1",
     "socket.io": "^1.0.6",
