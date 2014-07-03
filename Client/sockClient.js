@@ -24,6 +24,8 @@ var exec = require('child_process').exec;
 
 var figlet = require('figlet');
 
+var zlib = require('zlib');
+var gunzip = null;
 var sfx = null;
 
 try {
@@ -80,8 +82,7 @@ rl.on('line', function(line) {
 
 /***************THROUGH****************/
 
-//var buff = 0, fileSize = 0;
-
+var buff=0;
 var onData = function(buff, fileSize) {
     // var count = 0;
     return function(data) {
@@ -117,6 +118,7 @@ var onEnd = function() {
         chunk: null
     });
     console_out(color('file sent', 'cyan_bg'));
+    buff = 0;
 };
 
 
@@ -149,10 +151,6 @@ socket.on('showUsers', function(data) {
     data.users.forEach(function(user) {
         console_out(color(user, 'green'));
     });
-});
-
-socket.on('shout', function(data) {
-
 });
 
 var file = {
@@ -188,26 +186,48 @@ socket.on('dataBegin', function(data) {
 
     file.stream.on('error', function(err) {
         console.log(err);
+        file.stream.destroy();
     });
+    
+    file.stream.on('close', function() {
+      //console.log('file.stream stream closed');
+      file.stream.destroy();
+      file.stream.removeAllListeners();
+      file = {
+        name: '',
+        stream: null,
+        size: 0
+      };
+      
+    });
+    
+    gunzip = zlib.createGunzip();
 
 });
 
 
-//var counter = 0;
+var datalength = 0;
+
 socket.on('data', function(data) {
-
-    //if(counter % 20 === 0){
-    printProgress(file.stream.bytesWritten, file.size);
-    //}
-    file.stream.write(data.chunk);
-    //counter++;
-
+    printProgress(datalength, file.size);
+    gunzip.write(data.chunk);
+    datalength+=data.chunk.length;
 });
 
 socket.on('dataEnd', function(data) {
     console_out(color('file tranfer complete', 'blue_bg'));
     counter = 0;
-    file.stream.end();
+    gunzip.end();
+    gunzip.pipe(file.stream);
+    gunzip.on('close', function(){
+      //console.log('gunzip stream closed');
+      gunzip.removeAllListeners();
+      gunzip = null;
+    })
+    
+      
+    
+    datalength = 0;
 });
 
 
@@ -399,16 +419,31 @@ var begin = function(file, to, from, thr, sock) {
         //console.log('receiving response')
         if (data.send) {
 
-            fileSize = fs.statSync(file)["size"];
-            buff = 0;
+            var filesize = fs.statSync(file)["size"];
             sock.emit('sendStart', {
                 filename: path.basename(file),
-                size: fileSize,
+                size: filesize,
                 to: to,
                 from: from
             });
-
-            fs.createReadStream(file).pipe(thr);
+            
+            var writeStream = fs.createReadStream(file);
+            
+            writeStream.on('close', function() {
+              //console.log('writeStream stream closed');
+              writeStream.destroy();
+              writeStream.removeAllListeners();
+            });
+            
+            zipper = zlib.createGzip({level:9});
+            zipper.on('close', function() {
+              //console.log('zipper stream closed');
+              zipper.removeAllListeners();
+              zipper = null;
+              
+            });
+            
+            writeStream.pipe(zipper).pipe(thr);
 
         } else {
 
