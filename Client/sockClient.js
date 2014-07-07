@@ -7,6 +7,7 @@
   - Capital names have issues with file sending
   - set user states (afk, online)
   - timestamp user messages
+  - overwrite bug (occurs intermittenly) - multiline issue
   
 */
 
